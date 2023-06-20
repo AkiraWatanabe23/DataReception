@@ -6,7 +6,8 @@ using UnityEngine;
 public class TCP : MonoBehaviour
 {
     private TcpClient _client = default;
-    private long _tick = 0;
+
+    DateTimeOffset _baseDT = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private void Update()
     {
@@ -61,18 +62,13 @@ public class TCP : MonoBehaviour
         responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
         Debug.Log("PID: " + responseData);
 
-        Debug.Log(Calculation(DateTime.Now.Ticks));
+        var unixTime = (DateTimeOffset.Now - _baseDT).Ticks;
+
+        //Debug.Log(DateTime.Now.Ticks);
+        Debug.Log(unixTime);
 
         // 受け取った文字列に文字を付け足して戻す
         Byte[] buffer = System.Text.Encoding.ASCII.GetBytes("responce: " + responseData);
         Stream.Write(buffer, 0, buffer.Length);
-    }
-
-    private long Calculation(long time)
-    {
-        var num = _tick - time;
-        _tick = time;
-
-        return num;
     }
 }

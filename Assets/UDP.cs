@@ -7,7 +7,8 @@ using UnityEngine;
 public class UDP : MonoBehaviour
 {
     private static UdpClient _udp = default;
-    private long _tick = 0;
+
+    DateTimeOffset _baseDT = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private void Start()
     {
@@ -26,15 +27,9 @@ public class UDP : MonoBehaviour
         //stringに変換し、出力
         string text = Encoding.UTF8.GetString(data);
 
+        var unixTime = (DateTimeOffset.Now - _baseDT).Ticks;
+
         //Debug.Log(text);
-        Debug.Log(Calculation(DateTime.Now.Ticks));
-    }
-
-    private long Calculation(long time)
-    {
-        var num = _tick - time;
-        _tick = time;
-
-        return num;
+        Debug.Log(unixTime);
     }
 }
