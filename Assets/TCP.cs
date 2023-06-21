@@ -9,16 +9,29 @@ public class TCP : MonoBehaviour
 
     DateTimeOffset _baseDT = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
+    private string _data = default;
+    private bool _isOpenClient = false;
+
+    private void OnDisable()
+    {
+        Debug.Log(_data);
+    }
+
     private void Update()
     {
+        if (_isOpenClient) ConnectPython();
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            ConnectPython();
+            Debug.Log("開始します");
+            //ConnectPython();
+            _isOpenClient = true;
         }
 
         if (Input.GetKeyDown(KeyCode.Return) && _client != null)
         {
             ClosePython();
+            _isOpenClient = false;
         }
     }
 
@@ -65,10 +78,18 @@ public class TCP : MonoBehaviour
         var unixTime = (DateTimeOffset.Now - _baseDT).Ticks;
 
         //Debug.Log(DateTime.Now.Ticks);
-        Debug.Log(unixTime);
+        //Debug.Log(unixTime);
+
+        Debug.Log(Calculation(unixTime, long.Parse(responseData)));
+        _data += Calculation(unixTime, long.Parse(responseData)).ToString() + "\n";
 
         // 受け取った文字列に文字を付け足して戻す
         Byte[] buffer = System.Text.Encoding.ASCII.GetBytes("responce: " + responseData);
         Stream.Write(buffer, 0, buffer.Length);
+    }
+
+    private long Calculation(long unix, long time)
+    {
+        return unix - time;
     }
 }
