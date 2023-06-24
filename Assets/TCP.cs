@@ -37,7 +37,7 @@ public class TCP : MonoBehaviour
         GetPID(Stream);
 
         // 接続を切る
-        /*if (Input.GetKeyDown(KeyCode.Space)) */Client.Close();
+        if (Input.GetKeyDown(KeyCode.Space)) Client.Close();
     }
 
     private void GetPID(NetworkStream Stream)
