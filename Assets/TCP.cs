@@ -14,7 +14,7 @@ public class TCP : MonoBehaviour
         Debug.Log(_data);
     }
 
-    private void Update()
+    private void Start()
     {
         ConnectPython();
     }
@@ -24,11 +24,8 @@ public class TCP : MonoBehaviour
     {
         Debug.Log("try to connect");
 
-        // エンドポイントを設定する
-        IPEndPoint RemoteEP = new(IPAddress.Any, 50007);
-
         // TcpListenerを作成する
-        TcpListener Listener = new(RemoteEP);
+        TcpListener Listener = new(IPAddress.Any, 50007);
 
         // TCP接続を待ち受ける
         Listener.Start();
@@ -40,7 +37,7 @@ public class TCP : MonoBehaviour
         GetPID(Stream);
 
         // 接続を切る
-        if (Input.GetKeyDown(KeyCode.Space)) Client.Close();
+        /*if (Input.GetKeyDown(KeyCode.Space)) */Client.Close();
     }
 
     private void GetPID(NetworkStream Stream)
@@ -56,8 +53,8 @@ public class TCP : MonoBehaviour
 
         var unixTime = (DateTimeOffset.Now - _baseDT).Ticks;
 
-        Debug.Log(Calculation(unixTime, long.Parse(responseData)));
-        _data += Calculation(unixTime, long.Parse(responseData)).ToString() + "\n";
+        //Debug.Log(Calculation(unixTime, long.Parse(responseData)));
+        //_data += Calculation(unixTime, long.Parse(responseData)).ToString() + "\n";
 
         // 受け取った文字列に文字を付け足して戻す
         Byte[] buffer = System.Text.Encoding.ASCII.GetBytes("responce: " + responseData);
