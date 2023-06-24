@@ -27,6 +27,8 @@ public class UDP : MonoBehaviour
 
     private void Update()
     {
+        Debug.Log("play udp");
+
         IPEndPoint remoteEP = null;
 
         //UdpClientからデータを受け取る

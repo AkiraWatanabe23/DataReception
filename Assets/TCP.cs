@@ -5,12 +5,9 @@ using UnityEngine;
 
 public class TCP : MonoBehaviour
 {
-    private TcpClient _client = default;
-
     DateTimeOffset _baseDT = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private string _data = default;
-    private bool _isOpenClient = false;
 
     private void OnDisable()
     {
@@ -19,25 +16,14 @@ public class TCP : MonoBehaviour
 
     private void Update()
     {
-        if (_isOpenClient) ConnectPython();
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Debug.Log("開始します");
-            //ConnectPython();
-            _isOpenClient = true;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Return) && _client != null)
-        {
-            ClosePython();
-            _isOpenClient = false;
-        }
+        ConnectPython();
     }
 
     /// <summary> 送信側に接続する </summary>
-    public void ConnectPython()
+    private void ConnectPython()
     {
+        Debug.Log("try to connect");
+
         // エンドポイントを設定する
         IPEndPoint RemoteEP = new(IPAddress.Any, 50007);
 
@@ -46,39 +32,29 @@ public class TCP : MonoBehaviour
 
         // TCP接続を待ち受ける
         Listener.Start();
-        _client = Listener.AcceptTcpClient();
+        var Client = Listener.AcceptTcpClient();
 
         // 接続ができれば、データをやり取りするストリームを保存する
-        NetworkStream Stream = _client.GetStream();
+        NetworkStream Stream = Client.GetStream();
 
         GetPID(Stream);
 
         // 接続を切る
-        //_client.Close();
-    }
-
-    /// <summary> 接続を切る </summary>
-    private void ClosePython()
-    {
-        _client.Close();
+        if (Input.GetKeyDown(KeyCode.Space)) Client.Close();
     }
 
     private void GetPID(NetworkStream Stream)
     {
         Byte[] data = new Byte[256];
-        String responseData = String.Empty;
 
         // 接続先からデータを読み込む
         Int32 bytes = Stream.Read(data, 0, data.Length);
 
         // 読み込んだデータを文字列に変換する
-        responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+        string responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
         Debug.Log("PID: " + responseData);
 
         var unixTime = (DateTimeOffset.Now - _baseDT).Ticks;
-
-        //Debug.Log(DateTime.Now.Ticks);
-        //Debug.Log(unixTime);
 
         Debug.Log(Calculation(unixTime, long.Parse(responseData)));
         _data += Calculation(unixTime, long.Parse(responseData)).ToString() + "\n";
