@@ -11,6 +11,10 @@ public class ServerForTCP : MonoBehaviour
     /// <summary> TCPClient ... 接続したクライアント側の操作を行う </summary>
     private TcpClient _client = default;
 
+    private DateTimeOffset _baseDT = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    private string _data = default;
+
     private void Start()
     {
         StartServer();
@@ -46,7 +50,7 @@ public class ServerForTCP : MonoBehaviour
         //BeginAcceptTcpClient()の結果を取得する
         _client = _listener.EndAcceptTcpClient(ar);
 
-        Debug.Log($"client connected. IP : {((IPEndPoint)_client.Client.RemoteEndPoint).Address}");
+        //Debug.Log($"client connected. IP : {((IPEndPoint)_client.Client.RemoteEndPoint).Address}");
 
         //取得したデータの読み込み（受信）
         //完了したら、コールバック関数を実行する
@@ -64,7 +68,7 @@ public class ServerForTCP : MonoBehaviour
         //データが空だったら
         if (bytesRead <= 0)
         {
-            Debug.Log("client disconnected");
+            //Debug.Log("client disconnected");
             _client.Close();
 
             //再接続
@@ -74,7 +78,19 @@ public class ServerForTCP : MonoBehaviour
 
         //クライアントに送るデータ
         string receivedData = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-        Debug.Log($"received data : {receivedData}");
+        //Debug.Log($"received data : {receivedData}");
+
+        //追記
+        //=================================================
+        if (long.TryParse(receivedData, out long time))
+        {
+            var unixTime = (DateTimeOffset.Now - _baseDT).Ticks * 100;
+            var diff = Calculation(unixTime, time);
+
+            Debug.Log(diff);
+            _data += diff.ToString() + "\n";
+        }
+        //=================================================
 
         SendDataToClient(receivedData);
 
@@ -91,10 +107,18 @@ public class ServerForTCP : MonoBehaviour
         _client.GetStream().Write(buffer, 0, buffer.Length);
     }
 
+    /// <summary> 誤差を計算 </summary>
+    private long Calculation(long unix, long time)
+    {
+        return unix - time;
+    }
+
     private void OnDestroy()
     {
-        //接続を終了
+        //接続を終了し、結果を出力
         _client?.Close();
         _listener?.Stop();
+
+        Debug.Log(_data);
     }
 }
