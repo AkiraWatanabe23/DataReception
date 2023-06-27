@@ -1,9 +1,8 @@
-﻿using System.Net.Sockets;
+﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
-using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 /// <summary> クリックした位置のVector3を送信してみる </summary>
 public class PointSend : MonoBehaviour
@@ -11,17 +10,20 @@ public class PointSend : MonoBehaviour
     private TcpListener _listener = default;
     private TcpClient _client = default;
 
+    private Vector3 _inputPos = Vector3.zero;
+    private bool _isConnected = false;
+
     private void Start()
     {
-        StartServer();
+        //StartServer();
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !_isConnected)
         {
-            var pos = Input.mousePosition;
-            SendClickPosData(pos);
+            StartServer();
+            _inputPos = Input.mousePosition;
         }
     }
 
@@ -47,11 +49,14 @@ public class PointSend : MonoBehaviour
     /// <summary> 接続時に実行される </summary>
     private void OnClientConnected(IAsyncResult ar)
     {
+        _isConnected = true;
+
         //BeginAcceptTcpClient()の結果を取得する
         _client = _listener.EndAcceptTcpClient(ar);
 
-        //Debug.Log($"client connected. IP : {((IPEndPoint)_client.Client.RemoteEndPoint).Address}");
+        Debug.Log($"client connected. IP : {((IPEndPoint)_client.Client.RemoteEndPoint).Address}");
 
+        //配列を定義し、読み込み完了したら OnDataReceived() を実行する
         byte[] buffer = new byte[1024];
         _client.GetStream().BeginRead(buffer, 0, buffer.Length, OnDataReceived, buffer);
     }
@@ -66,8 +71,9 @@ public class PointSend : MonoBehaviour
         //データが空だったら
         if (bytesRead <= 0)
         {
-            //Debug.Log("client disconnected");
+            Debug.Log("client disconnected");
             _client.Close();
+            _isConnected = false;
 
             //再接続
             _listener.BeginAcceptTcpClient(OnClientConnected, null);
@@ -78,28 +84,25 @@ public class PointSend : MonoBehaviour
         string receivedData = Encoding.ASCII.GetString(buffer, 0, bytesRead);
         //Debug.Log($"received data : {receivedData}");
 
-        SendDataToClient(receivedData);
+        SendClickPosData(_inputPos);
 
-        //取得したデータの読み込み（受信）
-        //完了したら、コールバック関数を実行する
+        //ここで再帰呼び出ししてる
+        //→ TCPではデータの受信を行った際、「次のデータを受信する準備」をする必要があるため
+        //   再帰的に呼び出してデータの受信を非同期で行う
         _client.GetStream().BeginRead(buffer, 0, buffer.Length, OnDataReceived, buffer);
     }
 
     /// <summary> クライアントにデータを送信する </summary>
-    private void SendDataToClient(string data)
-    {
-        //文字列をbyte[]に変換して、データを送る
-        byte[] buffer = Encoding.ASCII.GetBytes(data);
-        _client.GetStream().Write(buffer, 0, buffer.Length);
-    }
-
     private void SendClickPosData(Vector3 pos)
     {
         Debug.Log(pos);
         string data = pos.ToString();
 
+        //文字列をbyte[]に変換して、データを送る
         byte[] buffer = Encoding.ASCII.GetBytes(data);
         _client.GetStream().Write(buffer, 0, buffer.Length);
+
+        _isConnected = false;
     }
 
     private void OnDestroy()
