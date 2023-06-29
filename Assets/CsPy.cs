@@ -6,8 +6,8 @@ using UnityEngine;
 public class CsPy : MonoBehaviour
 {
     //相対パスで実行ファイルのディレクトリを指定
-    private string _exePath = "\"..\\AppData\\Local\\Programs\\Python\\Python311\\python.exe\"";
-    private string _pyCodePath = "\"..\\Documents\\SocketCommunication\\output_test.py\"";
+    [SerializeField] private string _exePath = default;
+    [SerializeField] private string _pyCodePath = default;
 
     private void Start()
     {

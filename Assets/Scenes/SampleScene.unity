@@ -389,6 +389,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2364869c9bd30584b9002ae9dcca793f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _path: ..\\AppData\\Local\\Programs\\Python\\Python311\\python.exe
+  _py: ..\\Documents\\SocketCommunication\\output_test.py
 --- !u!1 &2023697563
 GameObject:
   m_ObjectHideFlags: 0
